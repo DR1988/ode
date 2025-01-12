@@ -34,9 +34,15 @@ export const heatSolutionImplicit = ({
     const time = 60
     const L = 0.5
     const H = 0.5
+    // copper
     const lamdaCu = 390
     const cCu = 385
     const DenseCu = 8960
+
+    //сталь
+    // const lamdaCu = 46 // теплопроводность //сталь
+    // const cCu = 460 // теплоемкость //сталь
+    // const DenseCu = 7800 // плотность //сталь
 
     const T0 = 5
     const Th = 80
@@ -54,7 +60,7 @@ export const heatSolutionImplicit = ({
 
     const alfa = lamdaCu / DenseCu / cCu // Температуропроводность
 
-    const timeSteps = 100
+    const timeSteps = 1000
     const tau = time / timeSteps
 
     const xArray = Array.from(new Array(Nx)).map(i => 0)
@@ -83,8 +89,8 @@ export const heatSolutionImplicit = ({
 
     for (let t = 0; t < timeSteps; t++) {
         for (let j = 0; j < Ny; j++) {
-            Temp2D[t][0][j] = Th;
-            Temp2D[t][0][j] = Thfunc(j)
+            // Temp2D[t][0][j] = Th;
+            Temp2D[t][Nx / 2][j] = Thfunc(j)
             // Temp2D[t][Nx - 1][j] = Tc;
         }
     }
@@ -94,8 +100,10 @@ export const heatSolutionImplicit = ({
         // debugger
         for (let j = 0; j < Ny; j++) {
             alfaX[0] = 0
-            // betaX[0] = Th
-            betaX[0] = Thfunc(j)
+            betaX[0] = Tc //Th
+
+            // betaX[2] = Th
+            // betaX[0] = Tc //Thfunc(j)
 
             for (let i = 1; i < Nx; i++) {
                 // ai, bi, ci, fi – коэффициенты канонического представления СЛАУ с трехдиагональной матрицей
@@ -110,10 +118,11 @@ export const heatSolutionImplicit = ({
             }
 
             Temp2D[t][Nx - 1][j] = Tc; // определяем значение температуры на правой границе на основе правого граничного условия
-
             for (let i = Nx - 2; i >= 0; i--) {
                 Temp2D[t][i][j] = alfaX[i] * Temp2D[t][i + 1][j] + betaX[i];
             }
+            Temp2D[t][Nx / 2][j] = Thfunc(j)
+
         }
 
         // for (let i = 1; i < Nx; i++) {
@@ -156,7 +165,7 @@ export const heatSolutionImplicit = ({
 export const resImp2Ds = heatSolutionImplicit({
     // h:0.000333,
     h: 0.0045,
-    totalTime: 40,
+    totalTime: 840,
     lengthX: 0.5,
     lengthY: 0.5,
     Tinitial: () => 20,

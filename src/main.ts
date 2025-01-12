@@ -13,7 +13,7 @@ console.log('resImp', resImp);
 const handleMouseMove = () => console.log(123)
 let currentTime = 0
 
-const timeStep = 1
+const timeStep = 5
 const increseTime = () => {
   currentTime += timeStep
   timeText.innerText = `time: ${currentTime}`
@@ -78,7 +78,7 @@ if (canvas && timeButton) {
     const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime })
     _getTempMapValue = getTempMapValue
 
-    _getTempMapValue(event.clientX, event.clientY)
+    getTempMapValue(event.clientX, event.clientY)
   })
 
   const timeId = setInterval(() => {
@@ -87,7 +87,7 @@ if (canvas && timeButton) {
     const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime, })
     _getTempMapValue = getTempMapValue
 
-    if (isFinished || isFinished2) {
+    if (isFinished2) {
       clearInterval(timeId)
     }
   }, 30);

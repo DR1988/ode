@@ -97,6 +97,7 @@ export const heatSolutionImplicit = ({
             let ci = getLamda(i * h, Ltotal) / (h ** 2)
             fi = -getDense(i * h, Ltotal) * getTherma(i * h, Ltotal) * Temp[j - 1][i] / tau
 
+
             alfa[i] = ai / (bi - ci * alfa[i - 1]);
             beta[i] = (beta[i - 1] * ci - fi) / (bi - ci * alfa[i - 1]);
         }

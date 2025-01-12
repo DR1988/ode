@@ -24,7 +24,7 @@ export const draw2D = ({
 ) => {
   const { Temp2D, Nx, Ny } = resImp2D
   ctx.clearRect(0, verticalOffset, ctx.canvas.clientWidth, ctx.canvas.clientHeight)
-  infoContainer()
+  // infoContainer()
   let finished = false
   const offset = 50
 
@@ -102,6 +102,7 @@ export const draw2D = ({
   }
 
   const getTempMapValue = (x: number, y: number) => {
+    // console.log(tempMap);
 
     const timeTempLayer = Temp2D[timeStep]
     if (timeTempLayer) {
