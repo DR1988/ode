@@ -1,22 +1,31 @@
-import {resImp} from './ODE/HeatEquasitoinImplicit'
+import { resImp } from './ODE/HeatEquasitoinImplicit'
+import { resImp2D } from './ODE/HeatEquasitoinImplicit2D'
+import { resImp2Ds } from './ODE/HeatEquasitoinImplicit2DS'
+import { draw1D } from './ODE/One_dimension';
+import { test } from './ODE/test';
+import { draw2D } from './ODE/two_dimension';
 import { getColors } from './rgbToTemp';
+
+
+console.log('resImp2Ds', resImp2Ds.Temp2D);
+console.log('resImp', resImp);
 
 const handleMouseMove = () => console.log(123)
 let currentTime = 0
 
+const timeStep = 1
 const increseTime = () => {
-    currentTime++
-    timeText.innerText = `time: ${currentTime}`
+  currentTime += timeStep
+  timeText.innerText = `time: ${currentTime}`
 }
 
 const canvas = document.getElementById('canvas') as (HTMLCanvasElement | null)
 const timeButton = document.getElementById('timeButton') as (HTMLButtonElement | null)
 const timeText = document.getElementById('timeText') as (HTMLSpanElement | null)
 
-const {Temp, InitialRef, N,} = resImp
-
-// console.log('Temp',  Temp[0], );
-console.log('resImp.Temp', N);
+const { Temp, N, } = resImp
+// const { Temp2D, Nx, Ny } = resImp2D
+const { Temp2D, Nx, Ny } = resImp2Ds
 
 const maxArray = Temp.map(t => Math.max(...t))
 const minArray = Temp.map(t => Math.min(...t))
@@ -24,128 +33,65 @@ const minArray = Temp.map(t => Math.min(...t))
 const maxTemp = Math.max(...maxArray)
 const minTemp = Math.min(...minArray)
 
-const scaleFactor = 4
+let maxTemp2D = Number.MIN_VALUE
+let mimTemp2D = Number.MAX_VALUE
 
-const draw = (ctx: CanvasRenderingContext2D, colors: string[], getRGBColor: (temp: number) => string) => {
-  let finished = false
-    const offset =  50
+Temp2D.flat(2).forEach((el, index) => {
+  if (el > maxTemp2D) {
+    maxTemp2D = el
+  }
+  if (el < mimTemp2D) {
+    mimTemp2D = el
 
-    for (let index = 0; index < 256; index++) {
-        
+  }
+});
 
-        ctx.beginPath()
-        ctx.rect(0, index + 100 , offset - 10, 1)
-        ctx.fillStyle = colors[index]
-        ctx.fill()
+// const maxArray2D= Temp2D.map(t => Math.max(...t))
+// const minArray2D = Temp2D.map(t => Math.min(...t))
+// console.log('mimTemp2D', mimTemp2D);
+// console.log('maxTemp2D', maxTemp2D);
+// console.log('Temp2D', Temp2D);
 
-        // ctx.beginPath()
-        // ctx.rect(offset + index, 355 , 1, -rgbTemp[index][1])
-        // ctx.fillStyle = 'green' 
-        // ctx.fill()
-
-        // ctx.beginPath()
-        // ctx.rect(offset + index, 355 , 1, -rgbTemp[index][0])
-        // ctx.fillStyle = 'red' 
-        // ctx.fill()
-
-        // ctx.beginPath()
-        // ctx.rect(offset + index, 355 , 1, -rgbTemp[index][2])
-        // ctx.fillStyle = 'blue'
-        // ctx.fill()
-    }
-
-    for (let index = 0; index < N; index++) {
-       const timeTempLayer = Temp[currentTime]
-       if (timeTempLayer) {
-
-       const color = getRGBColor(Temp[currentTime][index])
-        ctx.beginPath()
-        ctx.rect(offset +  scaleFactor * index, 200 ,scaleFactor * 1, 55)
-        ctx.fillStyle = color
-        ctx.fill()
-       } else {
-        finished = true
-       }
-
-    }
-
-        ctx.beginPath()
-        ctx.rect(offset, 357 , 255, 2)
-        ctx.fillStyle = 'black'
-        ctx.fill()
-
-        return finished
+let _getTempMapValue = (x: number, y: number) => {
+  console.log('NOT SET');
 }
 
 if (canvas && timeButton) {
-    const ctx = canvas.getContext('2d')
-    const {indexToTemp, rgbTemp, colors, getRGBColor} = getColors(maxTemp, minTemp)
+  const ctx = canvas.getContext('2d')
+  const { colors: colors2D, getRGBColor: getRGBColor2D } = getColors(maxTemp2D, mimTemp2D)
+  const { colors, getRGBColor } = getColors(maxTemp, minTemp)
 
-    // console.log('asdad',     getRGBColor(20.4));
-    // timeButton.addEventListener('click', () => {
-    //     increseTime()
-    //     draw(ctx, colors, getRGBColor)
-    //   }
-    // )
+  draw1D({ ctx, colors, getRGBColor, resImp, timeStep: currentTime })
+  const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime })
+  _getTempMapValue = getTempMapValue
 
-    const timeId = setInterval(() => {
-      increseTime()
-      const isFinished = draw(ctx, colors, getRGBColor)
-      if (isFinished) {
-        clearInterval(timeId)
-      }
-    }, 30);
+  timeButton.addEventListener('click', () => {
+    increseTime()
+    const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime })
+    _getTempMapValue = getTempMapValue
 
-    const offset =  50
+    draw1D({ ctx, colors, getRGBColor, resImp, timeStep: currentTime })
+  })
 
-    draw(ctx, colors, getRGBColor)
-    // for (let index = 0; index < 256; index++) {
-        
+  canvas.addEventListener('click', (event) => {
+    // console.log('event', event.clientX, event.clientY);
+    const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime })
+    _getTempMapValue = getTempMapValue
 
-    //     ctx.beginPath()
-    //     ctx.rect(0, index + 100 , offset - 10, 1)
-    //     ctx.fillStyle = colors[index]
-    //     ctx.fill()
+    _getTempMapValue(event.clientX, event.clientY)
+  })
 
-    //     // ctx.beginPath()
-    //     // ctx.rect(offset + index, 355 , 1, -rgbTemp[index][1])
-    //     // ctx.fillStyle = 'green' 
-    //     // ctx.fill()
+  const timeId = setInterval(() => {
+    increseTime()
+    const isFinished = draw1D({ ctx, colors, getRGBColor, resImp, timeStep: currentTime })
+    const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime, })
+    _getTempMapValue = getTempMapValue
 
-    //     // ctx.beginPath()
-    //     // ctx.rect(offset + index, 355 , 1, -rgbTemp[index][0])
-    //     // ctx.fillStyle = 'red' 
-    //     // ctx.fill()
+    if (isFinished || isFinished2) {
+      clearInterval(timeId)
+    }
+  }, 30);
 
-    //     // ctx.beginPath()
-    //     // ctx.rect(offset + index, 355 , 1, -rgbTemp[index][2])
-    //     // ctx.fillStyle = 'blue'
-    //     // ctx.fill()
-    // }
 
-    // for (let index = 0; index < N; index++) {
-    //    const timeTempLayer = Temp[currentTime]
-    //    if (timeTempLayer) {
-
-    //    const color = getRGBColor(Temp[currentTime][index])
-    // //    console.log('colors', colors);
-    //     ctx.beginPath()
-    //     ctx.rect(offset +  scaleFactor * index, 200 ,scaleFactor * 1, 55)
-    //     ctx.fillStyle = color
-    //     ctx.fill()
-    //    }
-
-    // }
-        // ctx.beginPath()
-        // ctx.rect(offset, 200 , N, 55)
-        // ctx.fillStyle = 'red'
-        // ctx.fill()
-
-        // ctx.beginPath()
-        // ctx.rect(offset, 357 , 255, 2)
-        // ctx.fillStyle = 'black'
-        // ctx.fill()
-
-                
 
 }
