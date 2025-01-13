@@ -35,9 +35,9 @@ export const heatSolutionImplicit = ({
     const L = 0.5
     const H = 0.5
     // copper
-    const lamdaCu = 390
-    const cCu = 385
-    const DenseCu = 8960
+    // const lamdaCu = 390
+    // const cCu = 385
+    // const DenseCu = 8960
 
     //сталь
     // const lamdaCu = 46 // теплопроводность //сталь
@@ -45,9 +45,9 @@ export const heatSolutionImplicit = ({
     // const DenseCu = 7800 // плотность //сталь
 
     // алюминий
-    // const lamdaCu = 237  // теплопроводность //сталь
-    // const cCu = 897 // теплоемкость //сталь
-    // const DenseCu = 2698 // плотность //сталь
+    const lamdaCu = 237  // теплопроводность //сталь
+    const cCu = 897 // теплоемкость //сталь
+    const DenseCu = 2698 // плотность //сталь
 
     const T0 = 5
     const Th = 80
@@ -55,8 +55,24 @@ export const heatSolutionImplicit = ({
         const sigma = Ny / 2
 
         return T0 + 30 * Math.exp(-(((index - sigma) / 7) ** 2))
+    }
+
+    const Tgaus = (index: number, Tmax: number) => {
+        const sigma = Ny / 2
+
+        return T0 + Tmax * Math.exp(-(((index - sigma) / 7) ** 2))
+    }
+
+    const TgausPlain = (i: number, j: number) => {
+        const sigmay = Ny / 2
+        const sigmax = Nx / 2
+        const jValue = T0 + 30 * Math.exp(-(((j - sigmay) / 7) ** 2))
+        const iValue = T0 + jValue * Math.exp(-(((i - sigmax) / 7) ** 2))
+        // console.log('jValue', jValue, xValue);
+        return { jValue, iValue }
         // return T0 + 3 * index
     }
+
     const Tc = 30
 
 
@@ -92,20 +108,60 @@ export const heatSolutionImplicit = ({
         }
     }
 
-    for (let t = 0; t < timeSteps; t++) {
+    const test: number[][] = [new Array(Nx)]
+
+    for (let index = 0; index < Nx; index++) {
+        const arr = []
+        for (let ji = 0; ji < Ny; ji++) {
+            arr.push(0)
+        }
+        test[index] = arr
+
+    }
+
+
+    let igausV = 0
+    let jgausV = 0
+    for (let j = 0; j < Ny; j++) {
+        igausV = Tgaus(j, 30)
+        test[Nx / 2][j] = igausV
+    }
+
+    for (let i = 0; i < Nx; i++) {
         for (let j = 0; j < Ny; j++) {
-            // Temp2D[t][0][j] = Th;
-            Temp2D[t][Nx / 2][j] = Thfunc(j)
-            // Temp2D[t][Nx - 1][j] = Tc;
+            jgausV = Tgaus(i, test[Nx / 2][j])
+            test[i][j] = jgausV
         }
     }
+
+    console.log('test[i][j]', test);
+
+
+    for (let t = 0; t < timeSteps; t++) {
+        for (let i = 0; i < Nx; i++) {
+            for (let j = 0; j < Ny; j++) {
+                Temp2D[t][0][j] = Th;
+                // Temp2D[t][Nx / 2][j] = Thfunc(j)
+                // Temp2D[t][Nx - 1][j] = Tc;
+            }
+
+        }
+    }
+
+    // for (let t = 0; t < timeSteps; t++) {
+    //     Temp2D[t][Nx / 2][Ny / 2] = Th
+    //     Temp2D[t][Nx / 2][Ny / 2 + 1] = Th
+    //     Temp2D[t][Nx / 2 - 1][Ny / 2] = Th
+    //     Temp2D[t][Nx / 2 - 1][Ny / 2 + 1] = Th
+    // }
+
 
     for (let t = 1; t < timeSteps; t++) {
 
         // debugger
         for (let j = 0; j < Ny; j++) {
             alfaX[0] = 0
-            betaX[0] = T0
+            betaX[0] = Th
 
             // betaX[2] = Th
             // betaX[0] = Tc //Thfunc(j)
@@ -122,12 +178,15 @@ export const heatSolutionImplicit = ({
                 betaX[i] = (ci * betaX[i - 1] - fi) / (bi - ci * alfaX[i - 1]);
             }
 
-            Temp2D[t][Nx - 1][j] = T0; // определяем значение температуры на правой границе на основе правого граничного условия
+            Temp2D[t][Nx - 1][j] = Tc; // определяем значение температуры на правой границе на основе правого граничного условия
             for (let i = Nx - 2; i > 0; i--) {
                 Temp2D[t][i][j] = alfaX[i] * Temp2D[t][i + 1][j] + betaX[i];
             }
-            Temp2D[t][Nx / 2][j] = Thfunc(j)
-
+            // Temp2D[t][Nx / 2][j] = Thfunc(j)
+            // Temp2D[t][Nx / 2][Ny / 2] = Th
+            // Temp2D[t][Nx / 2][Ny / 2 + 1] = Th
+            // Temp2D[t][Nx / 2 - 1][Ny / 2] = Th
+            // Temp2D[t][Nx / 2 - 1][Ny / 2 + 1] = Th
         }
 
         for (let i = 1; i < Nx - 2; i++) {
