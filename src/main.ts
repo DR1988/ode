@@ -1,5 +1,6 @@
+import { timeSteps } from './ODE/constants';
 import { resImp } from './ODE/HeatEquasitoinImplicit'
-import { resImp2D } from './ODE/HeatEquasitoinImplicit2D'
+// import { resImp2D } from './ODE/HeatEquasitoinImplicit2D'
 import { resImp2Ds } from './ODE/HeatEquasitoinImplicit2DS'
 import { draw1D } from './ODE/One_dimension';
 import { draw2D } from './ODE/two_dimension';
@@ -13,7 +14,7 @@ console.log('resImp2Ds', resImp2Ds.Temp2D);
 const handleMouseMove = () => console.log(123)
 let currentTime = 0
 
-const timeStep = 5
+const timeStep = 10
 const changeTime = (value: number) => {
   // currentTime += timeStep
   currentTime = value
@@ -21,9 +22,14 @@ const changeTime = (value: number) => {
 }
 
 const canvas = document.getElementById('canvas') as (HTMLCanvasElement | null)
-const timeButton = document.getElementById('timeButton') as (HTMLButtonElement | null)
+const timeButtonF = document.getElementById('timeButtonF') as (HTMLButtonElement | null)
+const timeButtonB = document.getElementById('timeButtonB') as (HTMLButtonElement | null)
+const startStop = document.getElementById('startStop') as (HTMLButtonElement | null)
 const timeText = document.getElementById('timeText') as (HTMLSpanElement | null)
 const rangeInput = document.getElementById('rangeInput') as (HTMLInputElement | null)
+
+
+
 
 const { Temp, N, } = resImp
 // const { Temp2D, Nx, Ny } = resImp2D
@@ -58,9 +64,10 @@ let _getTempMapValue = (x: number, y: number) => {
   console.log('NOT SET');
 }
 
-if (canvas && timeButton && rangeInput) {
+
+if (canvas && timeButtonF && timeButtonB && rangeInput) {
   rangeInput.setAttribute('min', '0')
-  rangeInput.setAttribute('max', '1000')
+  rangeInput.setAttribute('max', timeSteps.toString())
   const ctx = canvas.getContext('2d')
   const { colors: colors2D, getRGBColor: getRGBColor2D } = getColors(maxTemp2D, mimTemp2D)
   const { colors, getRGBColor } = getColors(maxTemp, minTemp)
@@ -69,12 +76,31 @@ if (canvas && timeButton && rangeInput) {
   const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime })
   _getTempMapValue = getTempMapValue
 
-  timeButton.addEventListener('click', () => {
-    changeTime(currentTime + timeStep)
-    const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime })
-    _getTempMapValue = getTempMapValue
+  timeButtonF.addEventListener('click', () => {
+    const value = currentTime + timeStep
 
-    draw1D({ ctx, colors, getRGBColor, resImp, timeStep: currentTime })
+    if (value <= timeSteps) {
+      changeTime(value)
+      rangeInput.value = (value).toString()
+
+      const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime })
+      _getTempMapValue = getTempMapValue
+
+      draw1D({ ctx, colors, getRGBColor, resImp, timeStep: currentTime })
+    }
+  })
+
+  timeButtonB.addEventListener('click', () => {
+    const value = currentTime - timeStep
+    if (value >= 0) {
+      changeTime(value)
+      rangeInput.value = (value).toString()
+
+      const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime })
+      _getTempMapValue = getTempMapValue
+
+      draw1D({ ctx, colors, getRGBColor, resImp, timeStep: currentTime })
+    }
   })
 
   canvas.addEventListener('click', (event) => {
@@ -107,6 +133,45 @@ if (canvas && timeButton && rangeInput) {
   //   }
   // }, 30);
 
+  let run = false
+  let timeId
+  const start = () => {
+    run = true
+    startStop.innerHTML = 'Stop'
+    timeId = setInterval(() => {
+      const value = currentTime + 1
+      changeTime(value)
+      const isFinished = draw1D({ ctx, colors, getRGBColor, resImp, timeStep: currentTime })
+      const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime, })
+      _getTempMapValue = getTempMapValue
 
+      rangeInput.value = (value).toString()
+      if (isFinished2) {
+        clearInterval(timeId)
+        startStop.innerHTML = 'Start'
+        run = false
+      }
+    }, 30);
+  }
+
+  const stop = () => {
+    run = false
+    startStop.innerHTML = 'Start'
+    clearInterval(timeId)
+  }
+
+  const togleProcess = () => {
+    if (run) {
+      stop()
+    } else {
+      if (currentTime >= timeSteps) {
+        currentTime = 0
+      }
+      start()
+    }
+  }
+
+
+  startStop.addEventListener('click', togleProcess)
 
 }

@@ -1,6 +1,8 @@
 // const Chart = require('chart.js')
 // import * as Chart from 'chart.js'
 
+import { timeSteps } from "./constants"
+
 
 //Медь
 const lamdaCu = 390 // теплопроводность //Медь
@@ -31,7 +33,7 @@ export const heatSolutionImplicit = ({
     /// https://portal.tpu.ru/SHARED/k/KRAYNOV/Study/Tab1/Tab/Kuznetsov%20Sheremet.pdf
     const Nx = 30
     const Ny = 30
-    const time = 60
+    const time = 120
     const L = 0.5
     const H = 0.5
     // copper
@@ -51,6 +53,9 @@ export const heatSolutionImplicit = ({
 
     const T0 = 5
     const Th = 80
+    const Tlaser = 230
+    const Tc = 30
+
     const Thfunc = (index: number) => {
         const sigma = Ny / 2
 
@@ -73,15 +78,14 @@ export const heatSolutionImplicit = ({
         // return T0 + 3 * index
     }
 
-    const Tc = 30
 
 
     const hx = L / (Nx - 1)
     const hy = H / (Ny - 1)
+    console.log('hyhy', hy);
 
     const alfa = lamdaCu / DenseCu / cCu // Температуропроводность
 
-    const timeSteps = 1000
     const tau = time / timeSteps
 
     const xArray = Array.from(new Array(Nx)).map(i => 0)
@@ -140,7 +144,7 @@ export const heatSolutionImplicit = ({
     for (let t = 0; t < timeSteps; t++) {
         for (let i = 0; i < Nx; i++) {
             for (let j = 0; j < Ny; j++) {
-                Temp2D[t][0][j] = Th;
+                Temp2D[t][0][j] = T0;
                 // Temp2D[t][Nx / 2][j] = Thfunc(j)
                 // Temp2D[t][Nx - 1][j] = Tc;
             }
@@ -148,12 +152,16 @@ export const heatSolutionImplicit = ({
         }
     }
 
-    // for (let t = 0; t < timeSteps; t++) {
-    //     Temp2D[t][Nx / 2][Ny / 2] = Th
-    //     Temp2D[t][Nx / 2][Ny / 2 + 1] = Th
-    //     Temp2D[t][Nx / 2 - 1][Ny / 2] = Th
-    //     Temp2D[t][Nx / 2 - 1][Ny / 2 + 1] = Th
-    // }
+    const laserBeam = () => {
+
+        for (let t = 0; t < timeSteps; t++) {
+            Temp2D[t][Nx / 2][Ny / 2] = Tlaser
+            Temp2D[t][Nx / 2][Ny / 2 + 1] = Tlaser
+            Temp2D[t][Nx / 2 - 1][Ny / 2] = Tlaser
+            Temp2D[t][Nx / 2 - 1][Ny / 2 + 1] = Tlaser
+        }
+    }
+    laserBeam()
 
 
     for (let t = 1; t < timeSteps; t++) {
@@ -161,7 +169,7 @@ export const heatSolutionImplicit = ({
         // debugger
         for (let j = 0; j < Ny; j++) {
             alfaX[0] = 0
-            betaX[0] = Th
+            betaX[0] = T0
 
             // betaX[2] = Th
             // betaX[0] = Tc //Thfunc(j)
@@ -178,15 +186,12 @@ export const heatSolutionImplicit = ({
                 betaX[i] = (ci * betaX[i - 1] - fi) / (bi - ci * alfaX[i - 1]);
             }
 
-            Temp2D[t][Nx - 1][j] = Tc; // определяем значение температуры на правой границе на основе правого граничного условия
+            Temp2D[t][Nx - 1][j] = T0; // определяем значение температуры на правой границе на основе правого граничного условия
             for (let i = Nx - 2; i > 0; i--) {
                 Temp2D[t][i][j] = alfaX[i] * Temp2D[t][i + 1][j] + betaX[i];
             }
             // Temp2D[t][Nx / 2][j] = Thfunc(j)
-            // Temp2D[t][Nx / 2][Ny / 2] = Th
-            // Temp2D[t][Nx / 2][Ny / 2 + 1] = Th
-            // Temp2D[t][Nx / 2 - 1][Ny / 2] = Th
-            // Temp2D[t][Nx / 2 - 1][Ny / 2 + 1] = Th
+            laserBeam()
         }
 
         for (let i = 1; i < Nx - 2; i++) {
@@ -212,6 +217,8 @@ export const heatSolutionImplicit = ({
             for (let j = Ny - 2; j > 0; j--) {
                 Temp2D[t][i][j] = alfaY[j] * Temp2D[t][i][j + 1] + betaY[j];
             }
+            laserBeam()
+
         }
 
     }
