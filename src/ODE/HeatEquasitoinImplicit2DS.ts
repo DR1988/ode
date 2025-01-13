@@ -206,7 +206,7 @@ export const heatSolutionImplicit = ({
                 betaY[j] = (ci * betaY[j - 1] - fi) / (bi - ci * alfaY[j - 1]);
             }
 
-            Temp2D[t][i][Ny - 1] = (2 * alfa * tau * betaY[Ny - 2] + (hy * hy) * Temp2D[t - 1][i][Ny - 1]) /
+            Temp2D[t][i][Ny - 1] = (2 * alfa * tau * betaY[Ny - 2] + (hy * hy) * Temp2D[t][i][Ny - 1]) /
                 (2 * alfa * tau * (1 - alfaY[Ny - 2]) + (hy * hy)); // check
 
             for (let j = Ny - 2; j > 0; j--) {
