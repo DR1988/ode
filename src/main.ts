@@ -2,13 +2,13 @@ import { resImp } from './ODE/HeatEquasitoinImplicit'
 import { resImp2D } from './ODE/HeatEquasitoinImplicit2D'
 import { resImp2Ds } from './ODE/HeatEquasitoinImplicit2DS'
 import { draw1D } from './ODE/One_dimension';
-import { test } from './ODE/test';
 import { draw2D } from './ODE/two_dimension';
 import { getColors } from './rgbToTemp';
 
 
 console.log('resImp2Ds', resImp2Ds.Temp2D);
-console.log('resImp', resImp);
+// console.log('resImp', resImp);
+
 
 const handleMouseMove = () => console.log(123)
 let currentTime = 0
@@ -81,16 +81,16 @@ if (canvas && timeButton) {
     getTempMapValue(event.clientX, event.clientY)
   })
 
-  const timeId = setInterval(() => {
-    increseTime()
-    const isFinished = draw1D({ ctx, colors, getRGBColor, resImp, timeStep: currentTime })
-    const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime, })
-    _getTempMapValue = getTempMapValue
+  // const timeId = setInterval(() => {
+  //   increseTime()
+  //   const isFinished = draw1D({ ctx, colors, getRGBColor, resImp, timeStep: currentTime })
+  //   const { finished: isFinished2, getTempMapValue } = draw2D({ ctx, colors: colors2D, getRGBColor: getRGBColor2D, resImp2D: resImp2Ds, timeStep: currentTime, })
+  //   _getTempMapValue = getTempMapValue
 
-    if (isFinished2) {
-      clearInterval(timeId)
-    }
-  }, 30);
+  //   if (isFinished2) {
+  //     clearInterval(timeId)
+  //   }
+  // }, 30);
 
 
 

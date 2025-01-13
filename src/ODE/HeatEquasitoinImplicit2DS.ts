@@ -44,6 +44,11 @@ export const heatSolutionImplicit = ({
     // const cCu = 460 // теплоемкость //сталь
     // const DenseCu = 7800 // плотность //сталь
 
+    // алюминий
+    // const lamdaCu = 237  // теплопроводность //сталь
+    // const cCu = 897 // теплоемкость //сталь
+    // const DenseCu = 2698 // плотность //сталь
+
     const T0 = 5
     const Th = 80
     const Thfunc = (index: number) => {
@@ -52,7 +57,7 @@ export const heatSolutionImplicit = ({
         return T0 + 30 * Math.exp(-(((index - sigma) / 7) ** 2))
         // return T0 + 3 * index
     }
-    const Tc = 5 //30
+    const Tc = 30
 
 
     const hx = L / (Nx - 1)
@@ -100,7 +105,7 @@ export const heatSolutionImplicit = ({
         // debugger
         for (let j = 0; j < Ny; j++) {
             alfaX[0] = 0
-            betaX[0] = Tc //Th
+            betaX[0] = T0
 
             // betaX[2] = Th
             // betaX[0] = Tc //Thfunc(j)
@@ -110,45 +115,45 @@ export const heatSolutionImplicit = ({
                 const ai = lamdaCu / (hx * hx);
                 const bi = 2 * lamdaCu / (hx * hx) + DenseCu * cCu / tau;
                 const ci = lamdaCu / (hx * hx);
-                const fi = -DenseCu * cCu * Temp2D[t - 1][i][j] / tau;
+                const fi = -DenseCu * cCu * Temp2D[t - 1][i][j] / tau; // используем предидущий слой времени для расчета
 
                 // alfaX[i], betaX[i] – прогоночные коэффициенты}
                 alfaX[i] = ai / (bi - ci * alfaX[i - 1]);
                 betaX[i] = (ci * betaX[i - 1] - fi) / (bi - ci * alfaX[i - 1]);
             }
 
-            Temp2D[t][Nx - 1][j] = Tc; // определяем значение температуры на правой границе на основе правого граничного условия
-            for (let i = Nx - 2; i >= 0; i--) {
+            Temp2D[t][Nx - 1][j] = T0; // определяем значение температуры на правой границе на основе правого граничного условия
+            for (let i = Nx - 2; i > 0; i--) {
                 Temp2D[t][i][j] = alfaX[i] * Temp2D[t][i + 1][j] + betaX[i];
             }
             Temp2D[t][Nx / 2][j] = Thfunc(j)
 
         }
 
-        // for (let i = 1; i < Nx; i++) {
+        for (let i = 1; i < Nx - 2; i++) {
 
-        //     // определяем начальные прогоночные коэффициенты на основе нижнего граничного условия, используя соотношения (20) при условии, что         q1 = 0
-        //     // см сыылку в начале кода
-        //     alfaY[0] = 2 * alfa * tau / (2 * alfa * tau + (hy * hy));
-        //     betaY[0] = (hy * hy) * Temp2D[t][i][0] / (2 * alfa * tau + (hy * hy));
+            // определяем начальные прогоночные коэффициенты на основе нижнего граничного условия, используя соотношения (20) при условии, что         q1 = 0
+            // см сыылку в начале кода
+            alfaY[0] = 2 * alfa * tau / (2 * alfa * tau + (hy * hy));
+            betaY[0] = (hy * hy) * Temp2D[t][i][0] / (2 * alfa * tau + (hy * hy));
 
-        //     for (let j = 1; j < Ny; j++) {
-        //         const ai = lamdaCu / (hy * hy);
-        //         const bi = 2 * lamdaCu / (hy * hy) + DenseCu * cCu / tau;
-        //         const ci = lamdaCu / (hy * hy);
-        //         const fi = -DenseCu * cCu * Temp2D[t - 1][i][j] / tau;
+            for (let j = 1; j <= Ny - 1; j++) {
+                const ai = lamdaCu / (hy * hy);
+                const bi = 2 * lamdaCu / (hy * hy) + DenseCu * cCu / tau;
+                const ci = lamdaCu / (hy * hy);
+                const fi = -DenseCu * cCu * Temp2D[t][i][j] / tau; // используем текующий слой времени для расчета
 
-        //         alfaY[j] = ai / (bi - ci * alfaY[j - 1]);
-        //         betaY[j] = (ci * betaY[j - 1] - fi) / (bi - ci * alfaY[j - 1]);
-        //     }
+                alfaY[j] = ai / (bi - ci * alfaY[j - 1]);
+                betaY[j] = (ci * betaY[j - 1] - fi) / (bi - ci * alfaY[j - 1]);
+            }
 
-        //     Temp2D[t][i][Ny - 1] = (2 * alfa * tau * betaY[Ny - 1] + (hy * hy) * Temp2D[t][i - 1][Ny - 1]) /
-        //         (2 * alfa * tau * (1 - alfaY[Ny - 1]) + (hy * hy)); // check
+            Temp2D[t][i][Ny - 1] = (2 * alfa * tau * betaY[Ny - 2] + (hy * hy) * Temp2D[t - 1][i][Ny - 1]) /
+                (2 * alfa * tau * (1 - alfaY[Ny - 2]) + (hy * hy)); // check
 
-        //     for (let j = Ny - 2; j >= 0; j--) {
-        //         Temp2D[t][i][j] = alfaY[j] * Temp2D[t][i][j + 1] + betaY[j];
-        //     }
-        // }
+            for (let j = Ny - 2; j > 0; j--) {
+                Temp2D[t][i][j] = alfaY[j] * Temp2D[t][i][j + 1] + betaY[j];
+            }
+        }
 
     }
 
