@@ -64,7 +64,6 @@ export const heatSolutionImplicit = ({
 ) => {
     const N = Math.round(length / h)
     const timeSteps = Math.round(totalTime / tau)
-    console.log('timeSteps', timeSteps);
 
     const spaceArray = Array.from(new Array(N)).map(i => 0)
     const Temp = Array.from(new Array(timeSteps))

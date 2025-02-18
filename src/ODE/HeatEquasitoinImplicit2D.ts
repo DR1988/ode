@@ -67,7 +67,6 @@ export const heatSolutionImplicit = ({
     boundariesDistributionBottom: () => number,
 }
 ) => {
-    console.log(12313123123);
 
     const Nx = Math.round(lengthX / h)
 
