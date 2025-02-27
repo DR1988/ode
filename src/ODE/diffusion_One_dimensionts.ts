@@ -20,14 +20,15 @@ export const draw1D_Diffusion = ({
   // console.log('Temp', Temp[0], N);
 
   const yMaxValue = 400
-  const xMaxValue = 400
+  const xMaxValue = 800
   const yBias = 30
   const xBias = 30
   const radius = 5
 
-  const dotCoordanates: { x: number, y: number, concentration: number }[] = []
+  let dotCoordanates: { x: number, y: number, concentration: number }[] = []
 
   const drawInitial = () => {
+    dotCoordanates = []
     ctx.clearRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight)
 
     drawArrow(ctx, { fromx: xBias, fromy: yMaxValue + yBias, tox: xBias, toy: yBias })
@@ -35,10 +36,10 @@ export const draw1D_Diffusion = ({
 
     ctx.beginPath()
     drawText(ctx, { text: 'Concentration', x: xBias, y: (yMaxValue + yBias) / 2, direction: 'vertical' })
-    drawText(ctx, { text: 'Time', x: (xMaxValue + xBias) / 2, y: yMaxValue + yBias })
+    drawText(ctx, { text: 'Coordinate', x: (xMaxValue + xBias) / 2, y: yMaxValue + yBias })
 
 
-    const viewStep = yMaxValue / totalSteps
+    const viewStep = xMaxValue / totalSteps
 
     for (let step = 1; step < totalSteps; step++) {
 
@@ -121,8 +122,11 @@ export const draw1D_Diffusion = ({
 
   if (timeButtonF && timeButtonB) {
     timeButtonF.addEventListener('click', () => {
+      console.log('timeSteps', currentTime, timeSteps);
+
       if (currentTime < timeSteps - 1) {
         currentTime++
+        console.log('currentTime', concentration[currentTime]);
         drawInitial()
       }
     })

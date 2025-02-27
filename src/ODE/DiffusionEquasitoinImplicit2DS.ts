@@ -40,16 +40,17 @@ export const diffusionSolutionExplicit = ({
 
 
     const totalTimeValue = 0.02
-    const tau = 0.005
+    const tau = 0.002
 
-    const stepSize = 0.2
+    const stepSize = 0.1
     const totalLengt = 1
 
-    const diffusion = 2
+    const diffusion = 1
 
     const r = diffusion * tau / (stepSize * stepSize)
 
     console.log('r', r);
+
 
     const timeSteps = totalTimeValue / tau + 1
     const totalSteps = totalLengt / stepSize + 1
